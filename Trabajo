@@ -1,0 +1,138 @@
+info=ncinfo('msl.presion.nivel.del.mar.nc')
+clear all 
+lon_msl=ncread('msl.presion.nivel.del.mar.nc','longitude');
+lat_msl=ncread('msl.presion.nivel.del.mar.nc','latitude');
+t =ncread('msl.presion.nivel.del.mar.nc','time');
+aux_msl = ncread('msl.presion.nivel.del.mar.nc', 'msl', [1 1 1 1], [1440 361 1 1008]); %recorto para periodo 
+aux_msl= squeeze(aux_msl);
+
+fechas = datetime(1940, 1, 1):calmonths(1):datetime(2023, 12, 1)
+fechas=fechas'
+%Defino las latitudes a utilizar 
+%El Índice de Oscilación Ecuatorial del Sur compara las  anomalías de presión 
+% en una amplia región del Pacífico
+% tropical oriental (5 grados de latitud norte y sur, 80 a 
+% 130 grados de longitud oeste) con las anomalías de 
+% presión en el otro lado de la cuenca (5 grados de 
+% latitud norte y sur, 90 a 140 grados de longitud este).
+
+
+%% GRAFICO 1 
+inlat= lat_msl>=-5 & lat_msl<=5;
+lat=lat_msl(inlat)
+
+indicelon_darwin=lon_msl>=-130 & lon_msl<=-80;
+lon_msldarwin=lon_msl(indicelon_darwin);
+
+indicelon_tahiti=lon_msl>=90 & lon_msl<=140;
+lon_msltahiti=lon_msl(indicelon_tahiti);
+
+datostahiti=aux_msl(indicelon_tahiti,inlat,:);
+datostahiti=squeeze(datostahiti)
+
+datosdarwin=aux_msl(indicelon_darwin,inlat,:);
+datosdarwin=squeeze(datosdarwin);
+
+% XX=length(lat)
+% 
+% for i = 1:XX
+%     for j=1:YY
+%         for k=1:KK
+%     dato_prep=squeeze(precipitacion_otonoaustral(i,j,:));
+%     dato_temp=squeeze(temperatura_otonoaustral(i,j,:));
+% 
+%     end
+% end
+
+figure 
+plot(fechas', datostahiti, 'LineWidth',2) %tahiti
+hold on
+plot(fechas', datosdarwin,'LineWidth',2) %darwin 
+legend('TAHITI','DARWIN','Location','southwest')
+xlabel('Años','FontSize',15)
+ylabel('Presión [hPa]','FontSize',15) 
+title('Valores de presión para Tahiti y Darwin 1940-2023','FontSize',15)
+grid minor 
+
+
+%% GRAFICO 2 COMPARA PRESIONES DURANTE EVENTOS DEL NIÑO Y LA NIÑA 
+% EN LAS ESTACIONES DE TAHITI Y DARWIN
+
+indice_latitudes = lat_msl>=-60 & lat_msl<=60;
+lat_msl = lat_msl(indice_latitudes);
+indice_longitudes=lon_msl>=-90 & lon_msl<=90;
+
+% Seleccionar los datos
+presion_2009_2010 = aux_msl(indice_longitudes,indice_latitudes,828:840); %Gran efecto del niño
+mean_presion2009_2010= nanmean(presion_2009_2010,3);
+presion_2011_2012 = aux_msl(indice_longitudes,indice_latitudes,852:864); %Gran efecto de la niña
+mean_presion2011_2012= nanmean(presion_2011_2012,3);
+
+
+figure(2)
+m_proj('miller','lon',[-90  90],'lat',[ -60 60]);
+m_pcolor(lon_msl,lat_msl,mean_presion2009_2010'); 
+shading interp
+a=colorbar(gca,'Location','EastOutside');
+a.Label.String = 'Correlación';
+hold on
+m_grid('LineStyle','--','Box','fancy','tickdir','in','FontSize',9);
+m_gshhs_i('Color','k','LineWidth',2);
+title('Correlación punto a punto para Precipitación y Temperatura','FontSize',20)
+xlabel('Longitud');
+ylabel('Latitud');
+colormap('jet')
+hold off
+
+
+
+
+
+
+
+
+figure()
+m_proj('miller','lon',[-100 -20],'lat',[-60 15]);
+m_pcolor(longitudes,latitudes, ----'); 
+shading interp
+a=colorbar(gca,'Location','EastOutside');
+a.Label.String = '-';
+hold on
+m_grid('LineStyle','--','Box','fancy','tickdir','in','FontSize',9);
+m_gshhs_i('Color','k','LineWidth',2);
+title('-','FontSize',20)
+colormap('jet')
+hold off
+
+
+
+
+
+
+
+
+
+
+
+aux_msl = aux_msl(1:2:end,:,:);% cada dos grillas
+lon_msl = lon_msl(1:2:end);% cada dos grillas
+
+% Define el nombre del archivo
+archivo = 'adaptor.mars.internal-1717286950.3369257-18128-8-36635c12-c72f-469d-b3b8-e9cd97615b12.nc';
+
+% Obtén información sobre las variables y dimensiones del archivo
+info = ncinfo(archivo);
+
+% Muestra información sobre el archivo
+disp(info);
+
+lon=ncread('adaptor.mars.internal-1717286950.3369257-18128-8-36635c12-c72f-469d-b3b8-e9cd97615b12.nc','longitude');
+%Tener en consideración length=1440
+lat=ncread('adaptor.mars.internal-1717286950.3369257-18128-8-36635c12-c72f-469d-b3b8-e9cd97615b12.nc','latitude');
+% length=361
+time=ncread('adaptor.mars.internal-1717286950.3369257-18128-8-36635c12-c72f-469d-b3b8-e9cd97615b12.nc','time');
+% length=1012
+aux=ncread('adaptor.mars.internal-1717286950.3369257-18128-8-36635c12-c72f-469d-b3b8-e9cd97615b12.nc','sst');
+
+
+% length=2
